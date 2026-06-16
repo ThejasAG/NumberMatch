@@ -226,9 +226,30 @@ input {
 }
 
 .cell.selected {
-  background: #4285f4;
+  background: #2b52b5;
   color: white;
-  transform: none;
+  border-color: #2b52b5;
+  transform: scale(0.95);
+}
+
+.cell.hint-pulse {
+  background-color: #ffd700;
+  color: #1a1a1a;
+  border-color: #ffb300;
+  animation: hintPulseAnim 1s infinite alternate;
+  z-index: 2;
+}
+
+@keyframes hintPulseAnim {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0px rgba(255, 215, 0, 0.4);
+  }
+
+  100% {
+    transform: scale(1.08);
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.8);
+  }
 }
 
 .game-actions-row {
@@ -249,8 +270,26 @@ input {
   font-size: 28px;
   color: white;
   position: relative;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   cursor: pointer;
+}
+
+.action-circle.suggest-pulse {
+  animation: suggestPulseAnim 0.5s infinite alternate;
+  border-color: #ffd700;
+  color: #ffd700;
+}
+
+@keyframes suggestPulseAnim {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0px rgba(255, 215, 0, 0.4);
+  }
+
+  100% {
+    transform: scale(1.15);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.9);
+  }
 }
 
 .action-circle.add-row {
@@ -314,6 +353,7 @@ input {
   from {
     transform: scale(0.995);
   }
+
   to {
     transform: scale(1);
   }
@@ -368,7 +408,8 @@ input {
   color: #fff;
 }
 
-.debug-latest h4, .debug-history h4 {
+.debug-latest h4,
+.debug-history h4 {
   margin: 0 0 8px 0;
   color: #fff;
 }

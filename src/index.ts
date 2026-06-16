@@ -4,6 +4,7 @@ export * from "./difficultyEngine.ts";
 export * from "./addRowEngine.ts";
 export * from "./rescueEngine.ts";
 export * from "./cleanupEngine.ts";
+export * from "./hintEngine.ts";
 export * from "./seeded.ts";
 export * from "./solutionGraphGenerator.ts";
 export * from "./levelGenerator.ts";

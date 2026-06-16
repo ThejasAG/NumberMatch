@@ -13,6 +13,7 @@ export function BoardGrid({ board, selected, onSelect }: BoardGridProps) {
   const showAllValidMoves = useDebugStore((state) => state.showAllValidMoves);
   const history = useDebugStore((state) => state.history);
   const session = useGameStore((state) => state.session);
+  const activeHint = useGameStore((state) => state.activeHint);
 
   const latest = history.length > 0 ? history[0] : null;
   const validPairs = debugMode && showAllValidMoves && session ? session.getValidPairs() : [];
@@ -31,6 +32,7 @@ export function BoardGrid({ board, selected, onSelect }: BoardGridProps) {
         {board.map((row, rowIndex) =>
           row.map((value, colIndex) => {
             const isSelected = selected?.row === rowIndex && selected.col === colIndex;
+            const isHint = activeHint && ((activeHint.pair.a.row === rowIndex && activeHint.pair.a.col === colIndex) || (activeHint.pair.b.row === rowIndex && activeHint.pair.b.col === colIndex));
             
             let debugClass = "";
             if (debugMode) {
@@ -51,7 +53,7 @@ export function BoardGrid({ board, selected, onSelect }: BoardGridProps) {
 
             return (
               <button
-                className={`cell ${value === null ? "dimmed" : ""} ${isSelected ? "selected" : ""}${debugClass}`}
+                className={`cell ${value === null ? "dimmed" : ""} ${isSelected ? "selected" : ""} ${isHint ? "hint-pulse" : ""}${debugClass}`}
                 disabled={value === null}
                 key={`${rowIndex}-${colIndex}`}
                 onClick={() => onSelect({ row: rowIndex, col: colIndex })}
