@@ -1,0 +1,32 @@
+{
+  "name": "number-match-engine",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "node --test tests/*.test.ts",
+    "simulate": "node src/scripts/simulate.ts",
+    "validate": "node src/scripts/validate.ts",
+    "calibrate": "node src/scripts/calibrate.ts",
+    "android:add": "cap add android",
+    "android:sync": "npm run build && cap sync android",
+    "android:open": "cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/app": "^7.1.0",
+    "@capacitor/core": "^7.4.3",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-router-dom": "^7.8.2",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.3",
+    "@vitejs/plugin-react": "^5.0.2",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.3"
+  }
+}

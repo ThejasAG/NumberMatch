@@ -1,0 +1,10 @@
+node_modules/
+dist/
+coverage/
+reports/
+
+android/.gradle/
+android/build/
+android/app/build/
+
+*.log
