@@ -67,8 +67,13 @@ export function GameScreen() {
           <div className="score-value">{bestScore}</div>
         </div>
       </section>
+      {message && (
+        <div style={{ textAlign: "center", color: "#2b52b5", fontWeight: 600, minHeight: 24, marginBottom: 8 }}>
+          {message}
+        </div>
+      )}
       <div className={pulseKey ? "pulse-zone pulse" : "pulse-zone"}>
-        <BoardGrid board={board} selected={selected} activeHint={activeHint} onSelect={(cell) => {
+        <BoardGrid board={board} selected={selected} onSelect={(cell) => {
           selectCell(cell);
           pulse();
         }} />

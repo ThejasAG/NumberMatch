@@ -1,4 +1,4 @@
-export type SoundName = "tap" | "match" | "error" | "row" | "win" | "lose";
+export type SoundName = "tap" | "match" | "error" | "row" | "win" | "lose" | "hint";
 
 export class SoundManager {
   private context: AudioContext | null = null;
@@ -19,10 +19,13 @@ export class SoundManager {
       match: 660,
       error: 180,
       row: 330,
+      hint: 520,
       win: 880,
       lose: 120
     };
-    oscillator.frequency.value = frequencies[name];
+    const frequency = frequencies[name];
+    if (!Number.isFinite(frequency)) return;
+    oscillator.frequency.value = frequency;
     oscillator.type = name === "error" || name === "lose" ? "sawtooth" : "sine";
     gain.gain.setValueAtTime(0.0001, context.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.08, context.currentTime + 0.01);
