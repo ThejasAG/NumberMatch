@@ -73,13 +73,16 @@ export class NumberMatchSession {
     }
     this.rescue.trackFailedAddRows(this.board);
     const rescued = this.rescue.shouldTriggerRescue(this.board);
-    const row = rescued
-      ? this.rescue.generateRescueRow(this.level, this.attempt + this.usedAddRows)
-      : this.addRows.generateAddRow(this.board, {
+    
+    // For endgame rescue (remaining <= 3), the SmartAddRowEngine handles it automatically.
+    // For early frustration rescue (rescued == true), we pass forceInstantMatch.
+    const row = this.addRows.generateAddRow(this.board, {
         level: this.level,
         attempt: this.attempt,
-        remainingAddRows: this.getRemainingAddRows()
-      });
+        remainingAddRows: this.getRemainingAddRows(),
+        forceInstantMatch: rescued
+    });
+    
     this.board.addRow(row);
     this.usedAddRows++;
     return { board: this.getBoard(), added: true, rescued, lost: false };

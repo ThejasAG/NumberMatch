@@ -12,18 +12,30 @@ export class SolutionGraphGenerator {
   generateSolutionGraph(level: number, seed = deterministicSeed(level, 1)): SolutionGraph {
     const profile = this.difficulty.getDifficultyProfile(level);
     const rng = new SeededSequence(seed);
-    const totalPairs = 13;
-    const directPairCount = Math.max(1, Math.round(totalPairs * profile.matchDensity));
+    const isLevelOne = ((level - 1) % 10) + 1 === 1;
+    const totalPairs = isLevelOne ? 14 : 13;
+    const directPairCount = isLevelOne ? 13 : Math.max(1, Math.round(totalPairs * profile.matchDensity));
     const hiddenPairCount = totalPairs - directPairCount;
-    const branchingFactor = profile.pairDistance === "high" ? 3 : profile.pairDistance === "medium" ? 2 : 1;
+    const branchingFactor = profile.validation?.minSolutionBranches ?? (isLevelOne ? 5 : profile.pairDistance === "high" ? 3 : profile.pairDistance === "medium" ? 2 : 1);
     const nodes: SolutionPairNode[] = [];
+    const levelOnePairs: [number, number][] = [];
+    if (isLevelOne) {
+       // Generate diverse balanced pairs
+       const baseDigits = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+       for (let i = 0; i < totalPairs; i++) {
+          const a = rng.pick(baseDigits);
+          const same = rng.next() < 0.25;
+          const b = same ? a : complementOf(a);
+          levelOnePairs.push([a, b]);
+       }
+    }
 
     for (let i = 0; i < totalPairs; i++) {
       const a = rng.int(1, 9);
       const same = rng.next() < 0.25;
-      const values: [number, number] = same ? [a, a] : [a, complementOf(a)];
+      const values: [number, number] = isLevelOne ? levelOnePairs[i] : same ? [a, a] : [a, complementOf(a)];
       const route = i % Math.max(1, branchingFactor);
-      const unlockAfter = i < directPairCount ? [] : [`p${Math.max(0, i - profile.chainDepth)}`];
+      const unlockAfter = i < directPairCount ? [] : [`p${directPairCount - 1}`];
       nodes.push({ id: `p${i}`, values, unlockAfter, route });
     }
 

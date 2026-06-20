@@ -3,10 +3,22 @@ import type { AnalyticsReport, SimulationReport, SimulationResult } from "./mode
 export class AnalyticsEngine {
   private sessions: SimulationResult[] = [];
   private matchDensities: number[] = [];
+  private initialReachablePairs: number[] = [];
+  private solutionGraphBranchingFactors: number[] = [];
+  private deadlockFrequencies: number[] = [];
+  private addRowDependencyScores: number[] = [];
+  private boardDiversityScores: number[] = [];
 
   recordGameSession(session: SimulationResult, matchDensity = 0): void {
     this.sessions.push(session);
     this.matchDensities.push(matchDensity);
+    if (session.boardAnalytics) {
+      this.initialReachablePairs.push(session.boardAnalytics.initialReachablePairs);
+      this.solutionGraphBranchingFactors.push(session.boardAnalytics.solutionGraphBranchingFactor);
+      this.deadlockFrequencies.push(session.boardAnalytics.deadlockFrequency);
+      this.addRowDependencyScores.push(session.boardAnalytics.addRowDependencyScore);
+      this.boardDiversityScores.push(session.boardAnalytics.boardDiversityScore);
+    }
   }
 
   recordSimulation(report: SimulationReport): void {
@@ -30,6 +42,11 @@ export class AnalyticsEngine {
       averageBoardHeight: avg(this.sessions.map((s) => s.maxBoardHeight)),
       averageRescueActivations: avg(this.sessions.map((s) => s.rescueActivations)),
       averageMatchDensity: avg(this.matchDensities),
+      averageInitialReachablePairs: avg(this.initialReachablePairs),
+      averageSolutionGraphBranchingFactor: avg(this.solutionGraphBranchingFactors),
+      averageDeadlockFrequency: avg(this.deadlockFrequencies),
+      averageAddRowDependencyScore: avg(this.addRowDependencyScores),
+      averageBoardDiversityScore: avg(this.boardDiversityScores),
       difficultyDistribution: distribution
     };
   }

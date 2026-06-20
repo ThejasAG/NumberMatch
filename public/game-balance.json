@@ -1,0 +1,18 @@
+{
+  "level5": {
+    "matchDensity": 0.35,
+    "decoyDensity": 0.32,
+    "pairDistance": "medium",
+    "addRowHelpfulnessTarget": 50,
+    "reachableMatchTarget": 1,
+    "diversityTarget": 30
+  },
+  "level1": {
+    "matchDensity": 0.93,
+    "decoyDensity": 0,
+    "pairDistance": "low",
+    "addRowHelpfulnessTarget": 50,
+    "reachableMatchTarget": 3,
+    "diversityTarget": 50
+  }
+}

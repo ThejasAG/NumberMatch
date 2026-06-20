@@ -120,7 +120,9 @@ export class BoardEngine {
   }
 
   addRow(row: number[]): void {
-    if (row.length !== BoardEngine.width) throw new Error("Add Row must contain exactly 9 numbers.");
+    if (row.length === 0 || row.length > BoardEngine.width) {
+      throw new Error(`Add Row must contain between 1 and ${BoardEngine.width} numbers.`);
+    }
     this.board.push(row.slice());
     this.historyBoard.push(row.slice());
   }

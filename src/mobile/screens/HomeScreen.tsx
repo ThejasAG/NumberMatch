@@ -11,6 +11,7 @@ export function HomeScreen() {
         <div className="brand-mark">10</div>
         <Link className="primary-action" to={`/game/${lastLevel}`}>Play</Link>
         <Link className="secondary-action" to="/levels">Levels</Link>
+        <Link className="secondary-action" to="/testing">🧪 Testing Dashboard</Link>
       </section>
     </AppShell>
   );

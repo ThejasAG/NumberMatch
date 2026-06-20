@@ -34,6 +34,20 @@ export interface DifficultyProfile {
   setupRatio: number;
   decoyRatio: number;
   scoreRange: [number, number];
+  addRowHelpfulnessTarget?: number;
+  reachableMatchTarget?: number;
+  diversityTarget?: number;
+  validation?: LevelValidationRules;
+}
+
+export interface LevelValidationRules {
+  targetAddRows: number;
+  minReachablePairs: number;
+  minDigitDiversity: number;
+  minSolutionBranches: number;
+  maxDeadlocks: number;
+  targetWinRate: number;
+  maxAddRowDependencyScore?: number;
 }
 
 export interface BoardAnalysis {
@@ -48,6 +62,7 @@ export interface AddRowInput {
   level: number;
   attempt: number;
   remainingAddRows: number;
+  forceInstantMatch?: boolean;
 }
 
 export interface SolutionPairNode {
@@ -78,6 +93,15 @@ export interface LevelData {
   matchDensity: number;
   decoyDensity: number;
   pairDistance: number;
+  analytics: LevelBoardAnalytics;
+}
+
+export interface LevelBoardAnalytics {
+  initialReachablePairs: number;
+  solutionGraphBranchingFactor: number;
+  deadlockFrequency: number;
+  addRowDependencyScore: number;
+  boardDiversityScore: number;
 }
 
 export type BotType = "perfect" | "average" | "weak";
@@ -90,6 +114,7 @@ export interface SimulationResult {
   addRowsUsed: number;
   rescueActivations: number;
   maxBoardHeight: number;
+  boardAnalytics?: LevelBoardAnalytics;
 }
 
 export interface SimulationReport {
@@ -113,6 +138,11 @@ export interface AnalyticsReport {
   averageBoardHeight: number;
   averageRescueActivations: number;
   averageMatchDensity: number;
+  averageInitialReachablePairs: number;
+  averageSolutionGraphBranchingFactor: number;
+  averageDeadlockFrequency: number;
+  averageAddRowDependencyScore: number;
+  averageBoardDiversityScore: number;
   difficultyDistribution: Record<string, number>;
 }
 

@@ -51,7 +51,7 @@ export class SimulationEngine {
       maxBoardHeight = Math.max(maxBoardHeight, board.getBoardHeight());
     }
 
-    return { level, bot, won: board.isBoardEmpty(), moves, addRowsUsed, rescueActivations, maxBoardHeight };
+    return { level, bot, won: board.isBoardEmpty(), moves, addRowsUsed, rescueActivations, maxBoardHeight, boardAnalytics: levelData.analytics };
   }
 
   private simulateGraphAwareGame(level: number, bot: BotType, attempt: number): SimulationResult {
@@ -68,7 +68,8 @@ export class SimulationEngine {
       moves,
       addRowsUsed,
       rescueActivations,
-      maxBoardHeight: 3 + addRowsUsed
+      maxBoardHeight: 3 + addRowsUsed,
+      boardAnalytics: levelData.analytics
     };
   }
 
