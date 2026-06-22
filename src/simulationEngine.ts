@@ -18,7 +18,7 @@ export class SimulationEngine {
   }
 
   simulateGame(level: number, bot: BotType = "perfect", attempt = 1): SimulationResult {
-    return this.simulateGraphAwareGame(level, bot, attempt);
+    return this.simulateVisibleGame(level, bot, attempt);
   }
 
   private simulateVisibleGame(level: number, bot: BotType = "perfect", attempt = 1): SimulationResult {
@@ -40,18 +40,21 @@ export class SimulationEngine {
         moves++;
         continue;
       }
+      
+      // Stop completely if the game is deadlocked and no add rows are allowed
       if (addRowsUsed >= 6) break;
       rescue.trackFailedAddRows(board);
-      const row = rescue.shouldTriggerRescue(board)
-        ? rescue.generateRescueRow(level, attempt + addRowsUsed)
-        : this.addRows.generateAddRow(board, { level, attempt, remainingAddRows: 6 - addRowsUsed });
-      if (rescue.shouldTriggerRescue(board)) rescueActivations++;
+      const row = this.addRows.generateAddRow(board, { level, attempt, remainingAddRows: 6 - addRowsUsed });
+      if (rescue.shouldTriggerRescue(board)) {
+        rescueActivations++;
+      } else {
+        addRowsUsed++;
+      }
       board.addRow(row);
-      addRowsUsed++;
       maxBoardHeight = Math.max(maxBoardHeight, board.getBoardHeight());
     }
 
-    return { level, bot, won: board.isBoardEmpty(), moves, addRowsUsed, rescueActivations, maxBoardHeight, boardAnalytics: levelData.analytics };
+    return { level, bot, won: board.isBoardEmpty(), moves, addRowsUsed, rescueActivations, maxBoardHeight, boardAnalytics: levelData.analytics, completionTime: moves + addRowsUsed + rescueActivations, orphanDigitCount: board.getRemainingNumbers().length };
   }
 
   private simulateGraphAwareGame(level: number, bot: BotType, attempt: number): SimulationResult {
@@ -69,7 +72,9 @@ export class SimulationEngine {
       addRowsUsed,
       rescueActivations,
       maxBoardHeight: 3 + addRowsUsed,
-      boardAnalytics: levelData.analytics
+      boardAnalytics: levelData.analytics,
+      completionTime: moves + addRowsUsed,
+      orphanDigitCount: 0
     };
   }
 
@@ -116,7 +121,15 @@ export class SimulationEngine {
       completionRate: wins / Math.max(1, results.length),
       averageAddRowsUsed: avg(results.map((r) => r.addRowsUsed)),
       averageBoardHeight: avg(results.map((r) => r.maxBoardHeight)),
-      rescueActivations: results.reduce((sum, r) => sum + r.rescueActivations, 0)
+      rescueActivations: results.reduce((sum, r) => sum + r.rescueActivations, 0),
+      averageCompletionTime: avg(results.map((r) => r.completionTime)),
+      averageOrphanDigitCount: avg(results.map((r) => r.orphanDigitCount)),
+      averageReachablePairs: avg(results.map((r) => r.boardAnalytics?.initialReachablePairs ?? 0)),
+      averageDiversityScore: avg(results.map((r) => r.boardAnalytics?.boardDiversityScore ?? 0)),
+      averageBranchingFactor: avg(results.map((r) => r.boardAnalytics?.solutionGraphBranchingFactor ?? 0)),
+      averageDeadlockFrequency: avg(results.map((r) => r.boardAnalytics?.deadlockFrequency ?? 0)),
+      averageAddRowDependency: avg(results.map((r) => r.boardAnalytics?.addRowDependencyScore ?? 0)),
+      rescueTriggerRate: results.filter((r) => r.rescueActivations > 0).length / Math.max(1, results.length)
     };
   }
 }

@@ -114,6 +114,8 @@ export interface SimulationResult {
   addRowsUsed: number;
   rescueActivations: number;
   maxBoardHeight: number;
+  completionTime: number;
+  orphanDigitCount: number;
   boardAnalytics?: LevelBoardAnalytics;
 }
 
@@ -127,6 +129,14 @@ export interface SimulationReport {
   averageAddRowsUsed: number;
   averageBoardHeight: number;
   rescueActivations: number;
+  averageCompletionTime: number;
+  averageOrphanDigitCount: number;
+  averageReachablePairs: number;
+  averageDiversityScore: number;
+  averageBranchingFactor: number;
+  averageDeadlockFrequency: number;
+  averageAddRowDependency: number;
+  rescueTriggerRate: number;
 }
 
 export interface AnalyticsReport {
@@ -227,5 +237,6 @@ export interface FinalCalibrationReport {
   addRowUsage: AddRowValidationReport;
   completionRate: CompletionValidationReport;
   sawtooth: SawtoothReport;
+  levelMetrics: SimulationReport[];
   passed: boolean;
 }

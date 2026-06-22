@@ -15,7 +15,7 @@ export class LevelGenerator {
 
   generateLevel(level: number, attempt = 1): LevelData {
     const profile = this.difficulty.getDifficultyProfile(level);
-    const maxGenerationAttempts = profile.validation ? 50 : 1;
+    const maxGenerationAttempts = profile.validation ? 500 : 1;
 
     for (let offset = 0; offset < maxGenerationAttempts; offset++) {
       const generationAttempt = attempt + offset;

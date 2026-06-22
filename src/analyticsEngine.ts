@@ -43,10 +43,15 @@ export class AnalyticsEngine {
       averageRescueActivations: avg(this.sessions.map((s) => s.rescueActivations)),
       averageMatchDensity: avg(this.matchDensities),
       averageInitialReachablePairs: avg(this.initialReachablePairs),
-      averageSolutionGraphBranchingFactor: avg(this.solutionGraphBranchingFactors),
       averageDeadlockFrequency: avg(this.deadlockFrequencies),
+      averageAddRowDependency: avg(this.addRowDependencyScores),
       averageAddRowDependencyScore: avg(this.addRowDependencyScores),
       averageBoardDiversityScore: avg(this.boardDiversityScores),
+      averageDiversityScore: avg(this.boardDiversityScores),
+      averageBranchingFactor: avg(this.solutionGraphBranchingFactors),
+      averageReachablePairs: avg(this.initialReachablePairs),
+      averageOrphanDigitCount: avg(this.sessions.map((s) => s.orphanDigitCount)),
+      rescueTriggerRate: this.sessions.filter((s) => s.rescueActivations > 0).length / Math.max(1, this.sessions.length),
       difficultyDistribution: distribution
     };
   }

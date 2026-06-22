@@ -9,7 +9,7 @@ const profiles: Record<string, Omit<DifficultyProfile, "level">> = {
     decoyDensity: 0.0,
     pairDistance: "low",
     chainDepth: 1,
-    targetAddRows: [1, 1],
+    targetAddRows: [0.8, 1.2],
     helperRatio: 0.85,
     setupRatio: 0.15,
     decoyRatio: 0.0,
@@ -19,16 +19,16 @@ const profiles: Record<string, Omit<DifficultyProfile, "level">> = {
     validation: {
       targetAddRows: 1,
       minReachablePairs: 15,
-      minDigitDiversity: 0.60,
+      minDigitDiversity: 0.65,
       minSolutionBranches: 5,
       maxDeadlocks: 0,
-      targetWinRate: 0.90,
+      targetWinRate: 0.95,
       maxAddRowDependencyScore: 0.15
     }
   },
   easyPlus: { 
-    name: "Easy+", matchDensity: 0.55, decoyDensity: 0.18, pairDistance: "low", chainDepth: 2, targetAddRows: [1, 2], helperRatio: 0.65, setupRatio: 0.22, decoyRatio: 0.13, scoreRange: [15, 40], reachableMatchTarget: 10, diversityTarget: 0.70,
-    validation: { targetAddRows: 2, minReachablePairs: 6, minDigitDiversity: 0.65, minSolutionBranches: 4, maxDeadlocks: 1, targetWinRate: 0.90, maxAddRowDependencyScore: 0.50 }
+    name: "Easy+", matchDensity: 0.55, decoyDensity: 0.18, pairDistance: "low", chainDepth: 2, targetAddRows: [1, 2], helperRatio: 0.65, setupRatio: 0.22, decoyRatio: 0.13, scoreRange: [15, 40], reachableMatchTarget: 15, diversityTarget: 0.70,
+    validation: { targetAddRows: 2, minReachablePairs: 15, minDigitDiversity: 0.70, minSolutionBranches: 4, maxDeadlocks: 0, targetWinRate: 0.90, maxAddRowDependencyScore: 0.50 }
   },
   normal: { 
     name: "Normal", matchDensity: 0.45, decoyDensity: 0.24, pairDistance: "medium", chainDepth: 2, targetAddRows: [2, 3], helperRatio: 0.6, setupRatio: 0.25, decoyRatio: 0.15, scoreRange: [30, 55], reachableMatchTarget: 8, diversityTarget: 0.75,

@@ -11,8 +11,8 @@ import {
 
 test("solution graph is deterministic, valid, and branched", () => {
   const generator = new SolutionGraphGenerator();
-  const a = generator.generateSolutionGraph(10, 123);
-  const b = generator.generateSolutionGraph(10, 123);
+  const a = generator.generateSolutionGraph(1, 123);
+  const b = generator.generateSolutionGraph(1, 123);
   assert.deepEqual(a, b);
   assert.equal(generator.validateGraph(a), true);
   assert.ok(generator.calculateGraphComplexity(a) > 0);

@@ -19,11 +19,20 @@ export class SolutionGraphGenerator {
     const branchingFactor = profile.validation?.minSolutionBranches ?? (isLevelOne ? 5 : profile.pairDistance === "high" ? 3 : profile.pairDistance === "medium" ? 2 : 1);
     const nodes: SolutionPairNode[] = [];
     const levelOnePairs: [number, number][] = [];
+    let digitPool: number[] = [];
+    const refillPool = () => {
+        digitPool = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+        for (let j = digitPool.length - 1; j > 0; j--) {
+            const k = Math.floor(rng.next() * (j + 1));
+            [digitPool[j], digitPool[k]] = [digitPool[k], digitPool[j]];
+        }
+    };
+    refillPool();
+
     if (isLevelOne) {
-       // Generate diverse balanced pairs
-       const baseDigits = [1, 2, 3, 4, 5, 6, 7, 8, 9];
        for (let i = 0; i < totalPairs; i++) {
-          const a = rng.pick(baseDigits);
+          if (digitPool.length === 0) refillPool();
+          const a = digitPool.pop()!;
           const same = rng.next() < 0.25;
           const b = same ? a : complementOf(a);
           levelOnePairs.push([a, b]);
@@ -31,7 +40,8 @@ export class SolutionGraphGenerator {
     }
 
     for (let i = 0; i < totalPairs; i++) {
-      const a = rng.int(1, 9);
+      if (digitPool.length === 0) refillPool();
+      const a = isLevelOne ? levelOnePairs[i][0] : digitPool.pop()!;
       const same = rng.next() < 0.25;
       const values: [number, number] = isLevelOne ? levelOnePairs[i] : same ? [a, a] : [a, complementOf(a)];
       const route = i % Math.max(1, branchingFactor);

@@ -124,10 +124,10 @@ export class GameBot {
              }
           } else {
             this.rescueEngine.trackFailedAddRows(board);
-            if (this.rescueEngine.shouldTriggerRescue(board)) {
-              const row = this.rescueEngine.generateRescueRow(level, attempt + addRowsUsed);
-              board.addRow(row);
-              rescuesTriggered++;
+            if (isDevModeTrigger || isProdModeTrigger) {
+             const row = this.addRowEngine.generateAddRow(board, { level, attempt, remainingAddRows: 6 - addRowsUsed });
+             board.addRow(row);
+             this.rescueEngine.resetAfterSuccessfulMatch();
               score -= 5;
             } else {
               const row = this.addRowEngine.generateAddRow(board, { level, attempt, remainingAddRows: 6 - addRowsUsed });

@@ -14,7 +14,7 @@ export class RescueEngine {
   }
 
   shouldTriggerRescue(board: BoardEngine): boolean {
-    return this.isStuck(board) && this.failedAddRows >= 2;
+    return (this.isStuck(board) && this.failedAddRows >= 2) || board.getRemainingNumbers().length <= 3;
   }
 
   generateRescueRow(level = 1, attempt = 1): number[] {
@@ -26,9 +26,31 @@ export class RescueEngine {
     return row;
   }
 
-  validateRescueSuccess(row: number[]): boolean {
-    const probe = new BoardEngine([row]);
-    return probe.findAllValidPairs().length > 0;
+  validateRescueSuccess(row: number[], board?: BoardEngine): boolean {
+    if (!board) {
+      const probe = new BoardEngine([row]);
+      return probe.findAllValidPairs().length > 0;
+    }
+    const initialRemaining = board.getRemainingNumbers().length;
+    const state = board.getBoardState();
+    const probe = new BoardEngine(state);
+    probe.addRow(row.slice());
+    
+    const pairs = probe.findAllValidPairs();
+    if (pairs.length === 0) return false;
+    
+    probe.removePair(pairs[0].a, pairs[0].b);
+    if (probe.getRemainingNumbers().length >= initialRemaining) return false;
+    
+    let moves = 1;
+    while(moves < 20) {
+      const remainingPairs = probe.findAllValidPairs();
+      if (remainingPairs.length === 0) break;
+      probe.removePair(remainingPairs[0].a, remainingPairs[0].b);
+      moves++;
+    }
+    
+    return probe.getRemainingNumbers().length < initialRemaining;
   }
 
   resetAfterSuccessfulMatch(): void {

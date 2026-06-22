@@ -56,83 +56,11 @@ export class SmartAddRowEngine {
     return map;
   }
 
-  private padRescueRow(baseRow: number[], remainingCount: number, rng: SeededSequence): number[] {
-    let targetLength = BoardEngine.width;
-    if ((remainingCount + targetLength) % 2 !== 0) {
-      targetLength = BoardEngine.width - 1;
-    }
-    const padded = [...baseRow];
-    while (padded.length + 1 < targetLength) {
-      const val = rng.int(1, 9);
-      const comp = rng.next() > 0.5 ? val : complementOf(val);
-      padded.push(val, comp);
-    }
-    // If there's exactly 1 slot left due to some math oddity, just fill it with a valid number 
-    // (though mathematically it shouldn't happen if baseRow matches the parity required).
-    if (padded.length < targetLength) {
-      padded.push(rng.int(1, 9)); 
-    }
-    return padded;
-  }
-
   generateMinimalRescueRow(board: BoardEngine, remainingNumbers: number[]): number[] {
-    const tryRow = (row: number[]) => this.validateRescueRow(board, row);
-    // Use a fixed seed for deterministic behavior within a given level/attempt context if needed,
-    // but here we just use Math.random since rescue is an emergency
-    const rng = new SeededSequence(Math.floor(Math.random() * 100000));
-
-    if (remainingNumbers.length === 1) {
-      const n = remainingNumbers[0];
-      const comp = complementOf(n);
-      
-      for (let i = 0; i < 100; i++) {
-        const row = this.padRescueRow([comp], 1, rng);
-        this.shuffle(row, rng);
-        if (tryRow(row)) return row;
-      }
-      return this.padRescueRow([comp], 1, rng);
-    }
-
-    if (remainingNumbers.length === 2) {
-      const n1 = remainingNumbers[0];
-      const n2 = remainingNumbers[1];
-      const c1 = complementOf(n1);
-      const c2 = complementOf(n2);
-
-      for (let i = 0; i < 100; i++) {
-        const row = this.padRescueRow([c1, c2], 2, rng);
-        this.shuffle(row, rng);
-        if (tryRow(row)) return row;
-      }
-      
-      // Fallback bridge
-      for (let i = 0; i < 50; i++) {
-        const row = this.padRescueRow([c1, c1, c2, c2], 2, rng);
-        this.shuffle(row, rng);
-        if (tryRow(row)) return row;
-      }
-
-      return this.padRescueRow([c1, c2], 2, rng);
-    }
-
-    if (remainingNumbers.length === 3) {
-      const required = remainingNumbers.map(n => complementOf(n));
-      for (let i = 0; i < 100; i++) {
-         const row = this.padRescueRow(required, 3, rng);
-         this.shuffle(row, rng);
-         if (tryRow(row)) return row;
-      }
-      
-      const fallback: number[] = [];
-      for (let i = 0; i < 3; i++) {
-         const n = remainingNumbers[i];
-         const c = complementOf(n);
-         fallback.push(c, n, c);
-      }
-      return fallback;
-    }
-
-    return remainingNumbers.map(n => complementOf(n));
+    const exactComplements = remainingNumbers.map(n => complementOf(n));
+    // Reverse the complements so they clear perfectly like a zipper in reading order!
+    // Example: stranded [1, 2, 3] -> adds [7, 8, 9]. 3 matches 7, then 2 matches 8, then 1 matches 9.
+    return exactComplements.reverse();
   }
 
   private validateRescueRow(board: BoardEngine, row: number[]): boolean {
@@ -173,7 +101,7 @@ export class SmartAddRowEngine {
 
   generateAddRow(board: BoardEngine, input: AddRowInput): number[] {
     const remainingNumbers = board.getRemainingNumbers();
-    if (input.level === 1 && remainingNumbers.length <= 3) {
+    if (input.level === 1 && remainingNumbers.length <= 8) {
       return this.generateMinimalRescueRow(board, remainingNumbers);
     }
 
@@ -188,8 +116,12 @@ export class SmartAddRowEngine {
     
     // Parity safe length calculation
     let targetLength = BoardEngine.width;
-    if ((remainingNumbers.length + targetLength) % 2 !== 0) {
-       targetLength = BoardEngine.width - 1; // E.g., 8 digits to keep total even
+    if (input.level === 1) {
+      targetLength = remainingNumbers.length % 2 === 0 ? 2 : 3;
+    } else {
+      if ((remainingNumbers.length + targetLength) % 2 !== 0) {
+         targetLength = BoardEngine.width - 1; // E.g., 8 digits to keep total even
+      }
     }
     
     const isInstantMatchForced = input.forceInstantMatch === true;
@@ -198,7 +130,7 @@ export class SmartAddRowEngine {
       const rng = new SeededSequence(deterministicSeed(input.level, input.attempt + input.remainingAddRows + attemptOffset));
       const row: number[] = [];
       
-      let boardAwareCount = Math.floor(targetLength * 0.6); // ~60% board aware
+      let boardAwareCount = input.level === 1 ? targetLength : Math.floor(targetLength * 0.6); // 100% board aware for Level 1
       
       if (isInstantMatchForced) {
          // Force an instant, guaranteed match at the start of the row
@@ -241,11 +173,19 @@ export class SmartAddRowEngine {
       const helpfulness = this.calculateBoardAwareHelpfulness(row, board);
       const reachableMatches = this.calculateReachableMatches(row, board);
       
+      // Validate that every Add Row creates at least one immediate legal move
+      if (input.level === 1 && reachableMatches <= board.findAllValidPairs().length) {
+         continue; // skip rows that don't increase reachable matches
+      }
+      
       candidates.push({ row, reachableMatches, helpfulness });
     }
 
     if (candidates.length === 0) {
       // Emergency safe row
+      if (input.level === 1) {
+         return remainingNumbers.length % 2 === 0 ? [1, 9] : [1, 9, 1];
+      }
       return [1, 9, 2, 8, 3, 7, 4, 4];
     }
 
@@ -271,12 +211,16 @@ export class SmartAddRowEngine {
       array[j] = temp;
     }
     
-    // Post-shuffle pass to break clumps
+    // Post-shuffle pass to break clumps (identical AND sum-to-10 pairs)
     for (let i = preserveFirst; i < array.length - 1; i++) {
-        if (array[i] === array[i+1]) {
+        if (array[i] === array[i+1] || array[i] + array[i+1] === 10) {
             // Find a different number further down to swap with
             for (let k = i + 2; k < array.length; k++) {
-                if (array[k] !== array[i] && (k === array.length - 1 || array[k+1] !== array[k])) {
+                if (
+                  array[k] !== array[i] && 
+                  array[k] + array[i] !== 10 && 
+                  (k === array.length - 1 || (array[k+1] !== array[k] && array[k+1] + array[k] !== 10))
+                ) {
                     let temp = array[i+1];
                     array[i+1] = array[k];
                     array[k] = temp;
@@ -328,7 +272,18 @@ export class SmartAddRowEngine {
     const mockBoard = new BoardEngine(clonedState);
     mockBoard.addRow(row.slice());
     
-    const newPairs = mockBoard.findAllValidPairs().length;
+    let newPairs = mockBoard.findAllValidPairs().length;
+    
+    // Simulate one step to see if it unlocks even more (chain reaction)
+    if (newPairs > initialPairs) {
+        const pairs = mockBoard.findAllValidPairs();
+        if (pairs.length > 0) {
+            mockBoard.removePair(pairs[0].a, pairs[0].b);
+            const secondaryPairs = mockBoard.findAllValidPairs().length;
+            newPairs += secondaryPairs * 0.5; // add bonus for chain potential
+        }
+    }
+    
     return newPairs - initialPairs;
   }
 

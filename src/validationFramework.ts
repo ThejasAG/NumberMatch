@@ -105,12 +105,14 @@ export class StatisticalValidationFramework {
     const addRowUsage = this.validateAddRowUsage(undefined, options.simulationCount ?? 10000);
     const completionRate = this.validateCompletionRates(undefined, options.simulationCount ?? 10000);
     const sawtooth = this.validateSawtooth(options.distributionCount ?? 1000);
+    const levelMetrics = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(level => this.simulation.simulateBatch(level, options.simulationCount ?? 1000));
     return {
       boardValidation,
       difficultyDistribution,
       addRowUsage,
       completionRate,
       sawtooth,
+      levelMetrics,
       passed: boardValidation.passed && difficultyDistribution.passed && addRowUsage.passed && completionRate.passed && sawtooth.passed
     };
   }
@@ -139,6 +141,19 @@ export class StatisticalValidationFramework {
     lines.push("", "## Completion Rate");
     for (const r of report.completionRate.levels) lines.push(`- Level ${r.level}: ${round(r.completionRate * 100)}%, passed ${r.passed}`);
     lines.push("", "## Sawtooth", `Passed: ${report.sawtooth.passed}`);
+    lines.push("", "## Level Validation Metrics");
+    for (const m of report.levelMetrics) {
+        lines.push(`### Level ${m.level}`);
+        lines.push(`- Win Rate: ${round(m.completionRate * 100)}%`);
+        lines.push(`- Avg Add Rows: ${round(m.averageAddRowsUsed)}`);
+        lines.push(`- Completion Time: ${round(m.averageCompletionTime)} moves`);
+        lines.push(`- Reachable Pairs: ${round(m.averageReachablePairs)}`);
+        lines.push(`- Diversity Score: ${round(m.averageDiversityScore * 100)}%`);
+        lines.push(`- Deadlock Rate: ${round(m.averageDeadlockFrequency * 100)}%`);
+        lines.push(`- Rescue Trigger Rate: ${round(m.rescueTriggerRate * 100)}%`);
+        lines.push(`- Branching Factor: ${round(m.averageBranchingFactor)}`);
+        lines.push(`- Orphan Digit Count: ${round(m.averageOrphanDigitCount)}`);
+    }
     return lines.join("\n");
   }
 
