@@ -159,9 +159,11 @@ test("smart add row is deterministic and always creates future match", () => {
   board.generateBoard(10, 1);
   const engine = new SmartAddRowEngine();
   const row = engine.generateAddRow(board, { level: 10, attempt: 1, remainingAddRows: 6 });
-  assert.equal(row.length, 9);
+  assert.equal(row.length, board.getRemainingNumbers().length);
   const withRow = new BoardEngine(board.getBoardState());
-  withRow.addRow(row);
+  for (let i = 0; i < row.length; i += BoardEngine.width) {
+    withRow.addRow(row.slice(i, i + BoardEngine.width));
+  }
   assert.ok(withRow.findAllValidPairs().length > board.findAllValidPairs().length);
 });
 
@@ -177,7 +179,25 @@ test("rescue triggers after two failed add rows and produces visible match", () 
 test("difficulty profiles follow sawtooth curve", () => {
   const difficulty = new DifficultyEngine();
   assert.equal(difficulty.getDifficultyProfile(1).name, "Easy");
-  assert.equal(difficulty.getDifficultyProfile(6).name, "Normal");
+  assert.equal(difficulty.getDifficultyProfile(6).name, "Easy+");
   assert.equal(difficulty.getDifficultyProfile(10).name, "Peak");
   assert.deepEqual(difficulty.getTargetAddRows(10), [4, 6]);
+});
+
+test("getMaxAddRows returns dynamic row budgets by level", () => {
+  const difficulty = new DifficultyEngine();
+  assert.equal(difficulty.getMaxAddRows(1), 6);
+  assert.equal(difficulty.getMaxAddRows(3), 6);
+  assert.equal(difficulty.getMaxAddRows(10), 6);
+});
+
+test("generateAddRow applies seesaw logic based on remaining numbers", () => {
+  const board = new BoardEngine([
+    [null, null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null, null],
+    [3, 7, 6, null, null, null, null, null, null]
+  ]);
+  const addRowEngine = new SmartAddRowEngine();
+  const row = addRowEngine.generateAddRow(board, { level: 2, attempt: 1, remainingAddRows: 3 });
+  assert.deepEqual(row, [6, 3, 3]);
 });

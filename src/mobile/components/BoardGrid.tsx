@@ -59,7 +59,7 @@ export function BoardGrid({ board, selected, onSelect }: BoardGridProps) {
                 onClick={() => onSelect({ row: rowIndex, col: colIndex })}
                 type="button"
               >
-                {displayValue !== null && displayValue !== 0 ? displayValue : ""}
+                {value !== null && displayValue !== 0 ? displayValue : ""}
               </button>
             );
           })

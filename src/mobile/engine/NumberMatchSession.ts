@@ -2,6 +2,7 @@ import { BoardEngine } from "../../boardEngine.ts";
 import { LevelGenerator } from "../../levelGenerator.ts";
 import { SmartAddRowEngine } from "../../addRowEngine.ts";
 import { RescueEngine } from "../../rescueEngine.ts";
+import { DifficultyEngine } from "../../difficultyEngine.ts";
 import type { Cell, CellValue, LevelData, MatchDebugInfo, Pair } from "../../models.ts";
 
 export interface MatchResult {
@@ -15,6 +16,7 @@ export class NumberMatchSession {
   private board: BoardEngine;
   private addRows = new SmartAddRowEngine();
   private rescue = new RescueEngine();
+  private difficulty = new DifficultyEngine();
   private levelData: LevelData;
   private usedAddRows = 0;
 
@@ -44,8 +46,12 @@ export class NumberMatchSession {
     return this.usedAddRows;
   }
 
+  getMaxAddRows(): number {
+    return this.difficulty.getMaxAddRows(this.level);
+  }
+
   getRemainingAddRows(): number {
-    return Math.max(0, 6 - this.usedAddRows);
+    return Math.max(0, this.getMaxAddRows() - this.usedAddRows);
   }
 
   getValidPairs(): Pair[] {
@@ -68,7 +74,8 @@ export class NumberMatchSession {
   }
 
   addRow(): { board: CellValue[][]; added: boolean; rescued: boolean; lost: boolean } {
-    if (this.usedAddRows >= 6) {
+    const maxAddRows = this.getMaxAddRows();
+    if (this.usedAddRows >= maxAddRows) {
       return { board: this.getBoard(), added: false, rescued: false, lost: !this.board.isBoardEmpty() };
     }
     this.rescue.trackFailedAddRows(this.board);
@@ -83,7 +90,9 @@ export class NumberMatchSession {
         forceInstantMatch: rescued
     });
     
-    this.board.addRow(row);
+    for (let i = 0; i < row.length; i += BoardEngine.width) {
+      this.board.addRow(row.slice(i, i + BoardEngine.width));
+    }
     this.usedAddRows++;
     return { board: this.getBoard(), added: true, rescued, lost: false };
   }

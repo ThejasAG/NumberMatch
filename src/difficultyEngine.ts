@@ -55,7 +55,7 @@ const profiles: Record<string, Omit<DifficultyProfile, "level">> = {
 export class DifficultyEngine {
   getDifficultyProfile(level: number): DifficultyProfile {
     const cycle = ((level - 1) % 10) + 1;
-    const key = cycle === 1 ? "easy" : cycle === 2 ? "easyPlus" : cycle === 3 || cycle === 6 ? "normal" : cycle === 4 || cycle === 7 ? "hard" : cycle === 5 || cycle === 8 ? "hardPlus" : cycle === 9 ? "veryHard" : "peak";
+    const key = cycle === 1 ? "easy" : cycle === 2 || cycle === 6 ? "easyPlus" : cycle === 3 ? "normal" : cycle === 4 || cycle === 7 ? "hard" : cycle === 5 || cycle === 8 ? "hardPlus" : cycle === 9 ? "veryHard" : "peak";
     return { level, ...profiles[key] };
   }
 
@@ -77,5 +77,9 @@ export class DifficultyEngine {
 
   getTargetAddRows(level: number): [number, number] {
     return this.getDifficultyProfile(level).targetAddRows;
+  }
+
+  getMaxAddRows(level: number): number {
+    return 6;
   }
 }

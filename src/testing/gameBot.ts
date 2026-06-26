@@ -89,6 +89,8 @@ export class GameBot {
     let simulatedTimeSeconds = 0;
     const moveTimeSeconds = level === 1 ? 3 : 1.5;
 
+    const maxAddRows = this.difficultyEngine.getMaxAddRows(level);
+
     while (!board.isBoardEmpty() && !isStuck) {
       if (this.strategy.makeMistake()) {
         mistakes++;
@@ -108,29 +110,33 @@ export class GameBot {
       // Stuck
       const validPairs = board.findAllValidPairs().length;
       if (validPairs === 0 && !board.isBoardEmpty()) {
-        if (this.strategy.wantsAddRow(board, addRowsUsed) && addRowsUsed < 6) {
+        if (this.strategy.wantsAddRow(board, addRowsUsed) && addRowsUsed < maxAddRows) {
           const currentRemaining = board.getRemainingNumbers();
           
           const isDevModeTrigger = this.rescueMode === RescueMode.DEVELOPER && currentRemaining.length <= 3;
-          const isProdModeTrigger = this.rescueMode === RescueMode.PRODUCTION && currentRemaining.length <= 3 && (6 - addRowsUsed) <= 2;
+          const isProdModeTrigger = this.rescueMode === RescueMode.PRODUCTION && currentRemaining.length <= 3 && (maxAddRows - addRowsUsed) <= 2;
           
           if (isDevModeTrigger || isProdModeTrigger) {
              // PHASE 8.1 / 9: Minimal Rescue Row Trigger
              rescueModeTriggered = true;
              const row = this.addRowEngine.generateMinimalRescueRow(board, currentRemaining);
-             board.addRow(row);
+             for (let i = 0; i < row.length; i += BoardEngine.width) {
+               board.addRow(row.slice(i, i + BoardEngine.width));
+             }
              if (board.findAllValidPairs().length > 0) {
                successfulAddRows++;
              }
           } else {
             this.rescueEngine.trackFailedAddRows(board);
             if (isDevModeTrigger || isProdModeTrigger) {
-             const row = this.addRowEngine.generateAddRow(board, { level, attempt, remainingAddRows: 6 - addRowsUsed });
-             board.addRow(row);
+             const row = this.addRowEngine.generateAddRow(board, { level, attempt, remainingAddRows: maxAddRows - addRowsUsed });
+             for (let i = 0; i < row.length; i += BoardEngine.width) {
+               board.addRow(row.slice(i, i + BoardEngine.width));
+             }
              this.rescueEngine.resetAfterSuccessfulMatch();
               score -= 5;
             } else {
-              const row = this.addRowEngine.generateAddRow(board, { level, attempt, remainingAddRows: 6 - addRowsUsed });
+              const row = this.addRowEngine.generateAddRow(board, { level, attempt, remainingAddRows: maxAddRows - addRowsUsed });
               const helpfulness = this.addRowEngine.calculateHelpfulness(row, board);
               const solvability = this.addRowEngine.calculateFutureSolvability(row, board);
               const reachableMatches = this.addRowEngine.calculateReachableMatches(row, board);
@@ -151,7 +157,9 @@ export class GameBot {
                  if (val >= 1 && val <= 9) digitDistribution[val]++;
               }
               
-              board.addRow(row);
+              for (let i = 0; i < row.length; i += BoardEngine.width) {
+                board.addRow(row.slice(i, i + BoardEngine.width));
+              }
               if (board.findAllValidPairs().length > 0) {
                 successfulAddRows++;
               }

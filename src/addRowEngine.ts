@@ -16,6 +16,12 @@ export class SmartAddRowEngine {
     this.cleanup = cleanup;
   }
 
+  private addMockRow(board: BoardEngine, row: number[]): void {
+    for (let i = 0; i < row.length; i += BoardEngine.width) {
+      board.addRow(row.slice(i, i + BoardEngine.width));
+    }
+  }
+
   analyzeBoard(board: BoardEngine, level = 1): BoardAnalysis {
     return {
       remainingNumbers: board.getRemainingNumbers(),
@@ -71,7 +77,7 @@ export class SmartAddRowEngine {
     // Initial pairs before adding
     const pairsBefore = mockBoard.findAllValidPairs().length;
     
-    mockBoard.addRow(row.slice());
+    this.addMockRow(mockBoard, row);
     
     // Validate immediate legal move exists
     const pairsAfter = mockBoard.findAllValidPairs();
@@ -101,103 +107,18 @@ export class SmartAddRowEngine {
 
   generateAddRow(board: BoardEngine, input: AddRowInput): number[] {
     const remainingNumbers = board.getRemainingNumbers();
-    if (input.level === 1 && remainingNumbers.length <= 8) {
-      return this.generateMinimalRescueRow(board, remainingNumbers);
+    if (remainingNumbers.length === 0) {
+      return [1, 9, 2, 8, 3, 7, 4, 6, 5]; // Default fallback if board is empty
     }
 
-    const attemptOffsetMax = 50;
-    const candidates: { row: number[], reachableMatches: number, helpfulness: number }[] = [];
-    
-    const freqMap = this.analyzeBoardFrequency(board);
-    const sortedDigits = Array.from(freqMap.entries())
-      .filter(([val, count]) => count > 0)
-      .sort((a, b) => b[1] - a[1])
-      .map(entry => entry[0]);
-    
-    // Parity safe length calculation
-    let targetLength = BoardEngine.width;
-    if (input.level === 1) {
-      targetLength = remainingNumbers.length % 2 === 0 ? 2 : 3;
-    } else {
-      if ((remainingNumbers.length + targetLength) % 2 !== 0) {
-         targetLength = BoardEngine.width - 1; // E.g., 8 digits to keep total even
-      }
-    }
-    
-    const isInstantMatchForced = input.forceInstantMatch === true;
-
-    for (let attemptOffset = 0; attemptOffset < attemptOffsetMax; attemptOffset++) {
-      const rng = new SeededSequence(deterministicSeed(input.level, input.attempt + input.remainingAddRows + attemptOffset));
-      const row: number[] = [];
-      
-      let boardAwareCount = input.level === 1 ? targetLength : Math.floor(targetLength * 0.6); // 100% board aware for Level 1
-      
-      if (isInstantMatchForced) {
-         // Force an instant, guaranteed match at the start of the row
-         const a = rng.pick([1, 2, 3, 4, 5, 8]);
-         const b = a === 8 || a === 5 ? a : complementOf(a);
-         row.push(a, b);
-         boardAwareCount = Math.max(0, boardAwareCount - 2);
-      }
-
-      // Add required board-aware numbers
-      let added = 0;
-      for (const val of sortedDigits) {
-        if (added >= boardAwareCount) break;
-        const count = freqMap.get(val)!;
-        const comp = complementOf(val);
-        // Cap at 2 copies to prevent "walls" of identical numbers and force diversity
-        const copies = Math.min(count, 2, boardAwareCount - added);
-        for (let i = 0; i < copies; i++) {
-            row.push(comp);
-            added++;
-        }
-      }
-
-      // Pad the rest of the row with safe, perfectly-clearing decoy pairs
-      // This hides the required numbers and provides "Stealth" randomness
-      while (row.length + 1 < targetLength) {
-         const decoy = rng.int(1, 9);
-         const comp = rng.next() > 0.5 ? decoy : complementOf(decoy);
-         row.push(decoy, comp);
-      }
-      
-      // If there's an odd gap left (which shouldn't happen mathematically due to parity safety), fill it safely
-      if (row.length < targetLength) {
-         row.push(rng.pick(sortedDigits)); // At least make it board-aware
-      }
-
-      // Strict Stealth Shuffle: Prevent identical numbers from clumping
-      this.stealthShuffle(row, rng, isInstantMatchForced ? 2 : 0);
-      
-      const helpfulness = this.calculateBoardAwareHelpfulness(row, board);
-      const reachableMatches = this.calculateReachableMatches(row, board);
-      
-      // Validate that every Add Row creates at least one immediate legal move
-      if (input.level === 1 && reachableMatches <= board.findAllValidPairs().length) {
-         continue; // skip rows that don't increase reachable matches
-      }
-      
-      candidates.push({ row, reachableMatches, helpfulness });
-    }
-
-    if (candidates.length === 0) {
-      // Emergency safe row
-      if (input.level === 1) {
-         return remainingNumbers.length % 2 === 0 ? [1, 9] : [1, 9, 1];
-      }
-      return [1, 9, 2, 8, 3, 7, 4, 4];
-    }
-
-    // Sort heavily by Helpfulness Score first, then ReachableMatch Score
-    candidates.sort((a, b) => {
-        if (b.helpfulness !== a.helpfulness) {
-            return b.helpfulness - a.helpfulness;
-        }
-        return b.reachableMatches - a.reachableMatches;
+    // Generate complements alternating between same-number and sum-to-10
+    const generated = remainingNumbers.map((val, index) => {
+      const isEven = index % 2 === 0;
+      return isEven ? val : complementOf(val);
     });
 
-    return candidates[0].row;
+    // Reverse for sequential clearing order (zipper/seesaw effect)
+    return generated.reverse();
   }
 
   private stealthShuffle(array: number[], rng: SeededSequence, preserveFirst: number = 0) {
@@ -235,7 +156,7 @@ export class SmartAddRowEngine {
     const state = originalBoard.getBoardState();
     const clonedState = state.map(r => r.slice());
     const mockBoard = new BoardEngine(clonedState);
-    mockBoard.addRow(row.slice());
+    this.addMockRow(mockBoard, row);
     
     const initialNumbers = mockBoard.getRemainingNumbers().length;
     let moves = 0;
@@ -260,7 +181,7 @@ export class SmartAddRowEngine {
     const state = originalBoard.getBoardState();
     const clonedState = state.map(r => r.slice());
     const mockBoard = new BoardEngine(clonedState);
-    mockBoard.addRow(row.slice());
+    this.addMockRow(mockBoard, row);
     return mockBoard.findAllValidPairs().length;
   }
 
@@ -270,7 +191,7 @@ export class SmartAddRowEngine {
     const state = originalBoard.getBoardState();
     const clonedState = state.map(r => r.slice());
     const mockBoard = new BoardEngine(clonedState);
-    mockBoard.addRow(row.slice());
+    this.addMockRow(mockBoard, row);
     
     let newPairs = mockBoard.findAllValidPairs().length;
     

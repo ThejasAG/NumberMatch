@@ -31,6 +31,8 @@ export class SimulationEngine {
     let rescueActivations = 0;
     let maxBoardHeight = board.getBoardHeight();
 
+    const maxAddRows = this.difficulty.getMaxAddRows(level);
+
     for (let guard = 0; guard < 300 && !board.isBoardEmpty(); guard++) {
       const pairs = board.findAllValidPairs();
       if (pairs.length > 0) {
@@ -42,15 +44,17 @@ export class SimulationEngine {
       }
       
       // Stop completely if the game is deadlocked and no add rows are allowed
-      if (addRowsUsed >= 6) break;
+      if (addRowsUsed >= maxAddRows) break;
       rescue.trackFailedAddRows(board);
-      const row = this.addRows.generateAddRow(board, { level, attempt, remainingAddRows: 6 - addRowsUsed });
+      const row = this.addRows.generateAddRow(board, { level, attempt, remainingAddRows: maxAddRows - addRowsUsed });
       if (rescue.shouldTriggerRescue(board)) {
         rescueActivations++;
       } else {
         addRowsUsed++;
       }
-      board.addRow(row);
+      for (let i = 0; i < row.length; i += BoardEngine.width) {
+        board.addRow(row.slice(i, i + BoardEngine.width));
+      }
       maxBoardHeight = Math.max(maxBoardHeight, board.getBoardHeight());
     }
 

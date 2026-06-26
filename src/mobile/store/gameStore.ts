@@ -83,7 +83,7 @@ export const useGameStore = create<GameStore>()(
           attempt,
           selected: null,
           addRowsUsed: 0,
-          remainingAddRows: 6,
+          remainingAddRows: session.getRemainingAddRows(),
           hintsRemaining: 3,
           activeHint: null,
           hintSuggestHighlight: false,
