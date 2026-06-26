@@ -119,12 +119,28 @@ export class BoardEngine {
     return true;
   }
 
-  addRow(row: number[]): void {
-    if (row.length === 0 || row.length > BoardEngine.width) {
-      throw new Error(`Add Row must contain between 1 and ${BoardEngine.width} numbers.`);
+  addRow(numbers: number[]): void {
+    if (numbers.length === 0) return;
+    let currentNumbers = [...numbers];
+
+    // If the last row is not full, fill it first
+    if (this.board.length > 0) {
+      const lastRow = this.board[this.board.length - 1];
+      if (lastRow.length < BoardEngine.width) {
+        const spaceLeft = BoardEngine.width - lastRow.length;
+        const toAdd = currentNumbers.slice(0, spaceLeft);
+        lastRow.push(...toAdd);
+        this.historyBoard[this.historyBoard.length - 1].push(...toAdd);
+        currentNumbers = currentNumbers.slice(spaceLeft);
+      }
     }
-    this.board.push(row.slice());
-    this.historyBoard.push(row.slice());
+
+    // Add remaining numbers as new rows
+    for (let i = 0; i < currentNumbers.length; i += BoardEngine.width) {
+      const chunk = currentNumbers.slice(i, i + BoardEngine.width);
+      this.board.push(chunk.slice());
+      this.historyBoard.push(chunk.slice());
+    }
   }
 
   getRemainingNumbers(): number[] {

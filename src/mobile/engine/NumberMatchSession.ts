@@ -90,9 +90,7 @@ export class NumberMatchSession {
         forceInstantMatch: rescued
     });
     
-    for (let i = 0; i < row.length; i += BoardEngine.width) {
-      this.board.addRow(row.slice(i, i + BoardEngine.width));
-    }
+    this.board.addRow(row);
     this.usedAddRows++;
     return { board: this.getBoard(), added: true, rescued, lost: false };
   }

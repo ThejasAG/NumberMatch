@@ -161,9 +161,7 @@ test("smart add row is deterministic and always creates future match", () => {
   const row = engine.generateAddRow(board, { level: 10, attempt: 1, remainingAddRows: 6 });
   assert.equal(row.length, board.getRemainingNumbers().length);
   const withRow = new BoardEngine(board.getBoardState());
-  for (let i = 0; i < row.length; i += BoardEngine.width) {
-    withRow.addRow(row.slice(i, i + BoardEngine.width));
-  }
+  withRow.addRow(row);
   assert.ok(withRow.findAllValidPairs().length > board.findAllValidPairs().length);
 });
 
